@@ -1,6 +1,11 @@
 # MR2 Jazzy Migration Workspace
 
-This is a local, history-preserving preparation workspace for Ubuntu 24.04 / ROS 2 Jazzy / Gazebo Harmonic. The application port has not started. GitHub creation is pending; the operational upstream and NX rover remain unchanged.
+This history-preserving fork prepares the Ubuntu 24.04 / ROS 2 Jazzy / Gazebo Harmonic migration. The application port has not started. The operational upstream and NX rover remain unchanged.
+
+- [Migration Project](https://github.com/orgs/URC-kaist/projects/2) — work status, evidence and hardware coordination; organization access required.
+- [English briefing](https://urc-kaist.github.io/docs/docs/global-update-project/en/) · [한국어 안내](https://urc-kaist.github.io/docs/docs/global-update-project/ko/).
+- [Starter issues](https://github.com/URC-kaist/mr2-stack-jazzy/issues) — thirteen work packages, unassigned for SW-leader allocation.
+- [Contributing](CONTRIBUTING.md) — branches, review and evidence expectations.
 
 Read the [English migration handoff](MIGRATION.md) or [한국어 안내](MIGRATION.ko.md). Native candidate experiments belong on the configurable Orin Nano; NX tests use scheduled operational windows.
 

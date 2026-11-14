@@ -5,9 +5,9 @@
 이 로컬 저장소는 기존 이력을 보존하면서 Orin NX 로버의 Ubuntu 24.04 / ROS 2 Jazzy / Gazebo Harmonic 전환을 준비합니다. Jazzy 포팅 완료본이나 실제 배포 릴리스는 아닙니다.
 
 - 잠정 기준: upstream 기본 브랜치 `2026`의 조사 커밋 `74422f36c55140519f111cf6709f1725711b536a`.
-- 후보 브랜치: `migration/jazzy`; 로컬 기준 태그: `audit/2026-11-14`.
-- `upstream`의 fetch 주소는 `https://github.com/URC-kaist/mr2-stack.git`이며 로컬 push URL은 비활성화했습니다. 게시용 remote는 없습니다.
-- GitHub 저장소 생성은 보류 중입니다. 이 로컬 clone은 아직 GitHub가 인식하는 fork가 아닙니다.
+- 기본 브랜치: `main`; 로컬 기준 태그: `audit/2026-11-14`.
+- `upstream`의 fetch 주소는 `https://github.com/URC-kaist/mr2-stack.git`이며 로컬 push URL은 비활성화했습니다. `origin`은 `https://github.com/URC-kaist/mr2-stack-jazzy.git`입니다.
+- GitHub fork와 [공유 Project](https://github.com/orgs/URC-kaist/projects/2)를 생성했습니다. Project는 조직의 비공개 기본 설정을 유지하며 [착수 이슈](https://github.com/URC-kaist/mr2-stack-jazzy/issues)의 담당자는 아직 배정하지 않았습니다.
 - 소스·서브모듈 이력을 보존합니다. 이번 준비에서는 애플리케이션 포팅, 의존성 설치, 장치 업데이트를 수행하지 않았습니다.
 
 워크스테이션에서는 병렬 개발하고, 사용 가능함이 확인된 재설정 가능한 Orin Nano에서는 후보 환경을 네이티브로 실험합니다. 예정된 검증 시간 외에는 NX 로버의 기존 운용 환경을 유지합니다. Nano 결과가 NX 인코더, 캐리어, 실제 운용 부하, 필드 인수를 입증하지는 않습니다.
