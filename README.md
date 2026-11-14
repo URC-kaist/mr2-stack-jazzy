@@ -1,3 +1,13 @@
+# MR2 Jazzy Migration Workspace
+
+This is a local, history-preserving preparation workspace for Ubuntu 24.04 / ROS 2 Jazzy / Gazebo Harmonic. The application port has not started. GitHub creation is pending; the operational upstream and NX rover remain unchanged.
+
+Read the [English migration handoff](MIGRATION.md) or [한국어 안내](MIGRATION.ko.md). Native candidate experiments belong on the configurable Orin Nano; NX tests use scheduled operational windows.
+
+## Historical Humble Reference
+
+The commands below are retained from the audited baseline. They describe the historical environment and are not a qualified Jazzy installation or deployment procedure.
+
 ### Quick memo on useful commands
 
 ### Docs
