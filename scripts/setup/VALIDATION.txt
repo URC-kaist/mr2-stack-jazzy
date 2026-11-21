@@ -1,0 +1,94 @@
+Jazzy environment integration validation — 2026-11-22
+====================================================
+
+Scope
+-----
+Base: URC-kaist/mr2-stack-jazzy main at
+0430fd589752de0d1577abb9069f2507a3ba9c3a.
+Task branch: migration/jazzy-environment-bootstrap.
+Add only the dev/rover/base installer, its implementation, manifest, checks,
+regression tests, official ROS apt-source bootstrap and documentation.
+The existing npm locks and submodule revisions are retained. The only
+application change consolidates duplicate TypeScript aliases in
+dashboard/src/lib/rosMessages.ts. No full rover source build is included.
+
+Submodules are cloned recursively at the revisions already pinned by main:
+  rtcm_msgs: 8d27ab5f4d4a581e1bb9c87d572994c25197f6d4
+  ublox_dgnss: f4fdcf77f1427ef92195e064e42232855f016256
+Only ublox_ubx_msgs and rtcm_msgs are built by this installer for Node message
+support; this is not a build of the entire rover workspace.
+
+Lock reconciliation
+-------------------
+The upstream gateway/dashboard locks and the NX-validated locks resolve the
+same packages and versions. Their only JSON difference is that the NX locks
+include a root engines.node constraint of >=24 <25. Retain upstream locks and
+record their actual hashes in versions.json. Node 24.15.0/npm 11.12.1 remain
+explicitly selected and checked by the installer.
+
+Dashboard type correction
+-------------------------
+The baseline dashboard/src/lib/rosMessages.ts declared nine type aliases twice,
+causing 18 TS2300 diagnostics. This change removes the repeated aliases while
+retaining every distinct type name and field. CarriageMotorTelemetryMsg keeps
+its optional stamp field, and the unique PumpRequest declaration remains.
+No ROS message definition or runtime message handling is changed.
+
+Before this correction, web-enabled installer checks returned nonzero at the
+dashboard typecheck. The correction resolves that failure; typecheck remains
+mandatory and no acceptance check is bypassed. Both typecheck and production
+build are checked by the final full setup/check commands.
+
+Reproduction
+------------
+Clone with --recurse-submodules. On the appropriate Ubuntu 24.04 host:
+  bash scripts/setup_dev.bash --prefix "$HOME/.local/share/mr2-jazzy"
+  bash scripts/setup_base.bash --prefix "$HOME/.local/share/mr2-jazzy"
+  bash scripts/setup_rover.bash --prefix "$HOME/.local/share/mr2-jazzy"
+For Nano validation, add --allow-nano-validation to the rover command.
+Add --with-rover-direct to exercise the rover's local gateway/dashboard.
+Append --check for subsequent checks without package installation.
+
+OS installation and JetPack flashing are prerequisites. Validation uses a new
+prefix, venv, toolchain, message build/install tree and node_modules under a
+fresh clone. Hash-checked download archives may be copied from existing
+caches. Existing venvs, node_modules and compiled workspaces are not copied.
+The hosts already have apt packages installed; this is not a bare-OS first
+installation test. Nano results do not certify NX-specific hardware.
+
+Use the generated perception-python wrapper (or source perception.bash) for
+perception execution. On rover the wrapper selects system CUDA/cuDNN/nvJPEG;
+merely activating the raw venv does not apply that SDK selection.
+The accepted PyTorch sm_87 warning remains documented. No warning suppression,
+wheel modification, TensorRT-default switch or motor actuation is performed.
+
+Observed integration results
+----------------------------
+- Bash syntax checks and all 16 installer boundary regression tests passed on
+  both validation hosts.
+- Nano arm64: new rover perception venv, Node toolchain, GNSS message build and
+  gateway/dashboard node_modules were created from the pinned inputs.
+- EDWIN amd64: new dev environment and base configuration were installed.
+- Python 3.12, Jazzy node/message imports, cv_bridge image roundtrip, apt-owned
+  OpenCV/NumPy and C++ OpenCV compile/link/run checks passed.
+- Native Polars, package metadata/provider checks, CPU tensor/NMS on dev and
+  GPU tensor/NMS, FP32/FP16 convolution, system nvJPEG decode, ONNX package
+  checker and system TensorRT import on rover passed.
+- Native Node/ROS loading and GNSS custom-message type support passed on both
+  architectures. No serial port or motor command was used.
+- A separate integration harness sent a positive image through system ROS,
+  the newly generated perception launcher, actual YOLO inference, ROS result
+  and annotated-image topics, a Node/rclnodejs acknowledgement, and a system
+  ROS observer. Four frames per mode passed: Nano FP32 + FP16, EDWIN CPU FP32.
+  Parameter dtypes, non-empty detections and result/image correspondence were
+  asserted. Nano core GPU mappings used system SDK paths.
+- Model/image fixtures were hash-checked and kept outside this Git repository;
+  no NX perception application source or model binary is included in the change.
+- After the type correction, the full installation and --check commands pass
+  on Nano rover --with-rover-direct and EDWIN dev/base, including dashboard
+  typecheck and production build. Earlier failure records remain retained as
+  baseline evidence, separate from these final results.
+
+Raw logs, state snapshots, fixture-backed harness code/results and lock JSON
+comparison are retained with the integration task evidence. The README
+explains each check and its limits.
