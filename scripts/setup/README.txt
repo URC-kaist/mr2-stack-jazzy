@@ -134,5 +134,3 @@ remain separate validation stages. No settings are appended to ~/.bashrc.
 
 To run the installer regression checks without installing host packages:
   /usr/bin/python3 -m unittest discover -s scripts/setup/tests -v
-
-Integration validation and the baseline dashboard type correction: see VALIDATION.txt.
