@@ -1,0 +1,178 @@
+name: Jazzy setup and build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - setup/jazzy-env-scripts
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jazzy-build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  setup-and-build:
+    name: Ubuntu 24.04 / Jazzy / amd64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: bash
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      PYTHONNOUSERSITE: '1'
+      ROS_DOMAIN_ID: '219'
+      ROS_LOCALHOST_ONLY: '1'
+      CMAKE_BUILD_PARALLEL_LEVEL: '1'
+      MAKEFLAGS: -j1
+
+    steps:
+      - name: Checkout source and pinned submodules
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Record source and runner versions
+        run: |
+          export MR2_CI_ROOT="$RUNNER_TEMP/mr2-ci"
+          {
+            echo "MR2_CI_ROOT=$MR2_CI_ROOT"
+            echo "MR2_CI_PREFIX=$MR2_CI_ROOT/setup"
+          } >> "$GITHUB_ENV"
+          mkdir -p "$MR2_CI_ROOT/records"
+          {
+            git rev-parse HEAD
+            git submodule status --recursive
+            cat /etc/os-release
+            uname -a
+            /usr/bin/python3 --version
+            sha256sum scripts/setup/versions.json \
+              base/gateway/package-lock.json dashboard/package-lock.json
+          } | tee "$MR2_CI_ROOT/records/source-and-runner.txt"
+
+      - name: Check installer regressions
+        id: installer-tests
+        run: |
+          /usr/bin/python3 -m unittest discover -s scripts/setup/tests -v \
+            2>&1 | tee "$MR2_CI_ROOT/records/installer-tests.log"
+
+      - name: Isolate preinstalled runner Python packages
+        run: |
+          # Hosted runners include global pip packages that can shadow our
+          # Ubuntu apt providers. Preserve them outside Python's import path
+          # on this disposable VM; keep the installer's ownership checks.
+          /usr/bin/python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          backup = Path(os.environ['MR2_CI_ROOT']) / 'runner-python-backup'
+          backup.mkdir()
+          for index, entry in enumerate(dict.fromkeys(sys.path)):
+              path = Path(entry)
+              if (path.is_absolute() and path.is_relative_to('/usr/local/lib')
+                      and path.name in {'site-packages', 'dist-packages'} and path.is_dir()):
+                  print(f'Isolating preinstalled packages: {path}', flush=True)
+                  subprocess.run(['sudo', 'mv', '--', str(path), str(backup / str(index))], check=True)
+                  subprocess.run(['sudo', 'install', '-d', '-m', '0755', str(path)], check=True)
+          PY
+
+      - name: Install and validate the development environment
+        id: setup
+        run: |
+          # A new prefix forces provisioning on this runner. No installed
+          # environment, node_modules or ROS build outputs are restored.
+          test ! -e "$MR2_CI_PREFIX"
+          bash scripts/setup_dev.bash --prefix "$MR2_CI_PREFIX" \
+            2>&1 | tee "$MR2_CI_ROOT/records/setup-install.log"
+          cp "$MR2_CI_PREFIX/state/dev/result.json" \
+            "$MR2_CI_ROOT/records/setup-install-result.json"
+
+      - name: Repeat environment checks without installing packages
+        id: environment-check
+        run: |
+          bash scripts/setup_dev.bash --prefix "$MR2_CI_PREFIX" --check \
+            2>&1 | tee "$MR2_CI_ROOT/records/setup-check.log"
+
+      - name: Build all ROS packages
+        id: ros-build
+        working-directory: rover/ros2_ws
+        run: |
+          # Use only the apt Jazzy underlay: the GNSS interfaces built by
+          # setup are rebuilt here along with the rest of the source tree.
+          source /opt/ros/jazzy/setup.bash
+          /usr/bin/colcon list --base-paths src --names-only \
+            | tee "$MR2_CI_ROOT/records/ros-packages.txt"
+          # colcon orders dependencies; independent packages may run together.
+          # Bound both package concurrency and each package's compiler workers.
+          /usr/bin/colcon --log-base "$MR2_CI_ROOT/ros/log" build \
+            --base-paths src \
+            --build-base "$MR2_CI_ROOT/ros/build" \
+            --install-base "$MR2_CI_ROOT/ros/install" \
+            --executor parallel --parallel-workers 2 \
+            --continue-on-error --event-handlers console_cohesion+ \
+            --cmake-args \
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DBUILD_TESTING=OFF \
+              -DPython3_EXECUTABLE=/usr/bin/python3 \
+            2>&1 | tee "$MR2_CI_ROOT/records/ros-build.log"
+
+      - name: Typecheck and build the dashboard
+        id: web-build
+        working-directory: dashboard
+        run: |
+          # Each step has its own shell; load the pinned Node/npm again.
+          source "$MR2_CI_PREFIX/state/dev/env.bash"
+          npm run typecheck 2>&1 | tee "$MR2_CI_ROOT/records/dashboard-typecheck.log"
+          npm run build 2>&1 | tee "$MR2_CI_ROOT/records/dashboard-build.log"
+
+      - name: Check tracked source and lockfiles were preserved
+        id: source-check
+        run: |
+          git diff --exit-code HEAD -- .
+          git submodule foreach --recursive 'git diff --exit-code HEAD -- .'
+
+      - name: Summarize completed stages
+        if: always()
+        env:
+          INSTALLER_TESTS: ${{ steps.installer-tests.outcome }}
+          SETUP: ${{ steps.setup.outcome }}
+          ENVIRONMENT_CHECK: ${{ steps.environment-check.outcome }}
+          ROS_BUILD: ${{ steps.ros-build.outcome }}
+          WEB_BUILD: ${{ steps.web-build.outcome }}
+          SOURCE_CHECK: ${{ steps.source-check.outcome }}
+        run: |
+          {
+            echo '## Jazzy setup and build'
+            echo
+            echo '| Stage | Result |'
+            echo '| --- | --- |'
+            echo "| Installer regressions | $INSTALLER_TESTS |"
+            echo "| Development environment installation | $SETUP |"
+            echo "| Environment recheck | $ENVIRONMENT_CHECK |"
+            echo "| ROS package build | $ROS_BUILD |"
+            echo "| Dashboard typecheck/build | $WEB_BUILD |"
+            echo "| Source/lockfile preservation | $SOURCE_CHECK |"
+            echo
+            echo 'Scope: Ubuntu 24.04 amd64 dev setup and compilation.'
+            echo 'Application functional tests, colcon test, and Nano/NX hardware checks are not run.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload installation and build diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: jazzy-setup-build-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/mr2-ci/records/
+            ${{ runner.temp }}/mr2-ci/setup/state/dev/
+            ${{ runner.temp }}/mr2-ci/ros/log/
+          retention-days: 14
+          if-no-files-found: warn

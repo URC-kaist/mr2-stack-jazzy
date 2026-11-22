@@ -219,6 +219,7 @@ export type MotorPositionRequest = {
 }
 
 export type CarriageMotorTelemetryMsg = {
+  stamp?: RosStamp
   position_um?: number
   velocity_um_s?: number
 }
@@ -251,49 +252,7 @@ export type PanoramaCaptureResult = {
   panorama?: CompressedImageMsg
 }
 
-export type ScienceServiceResponse = {
-  success: boolean
-  message: string
-}
-
-export type SetScienceLedRequest = {
-  enabled: boolean
-  brightness: number
-}
-
 export type PumpRequest = {
   group: number
   duration_ms: number
-}
-
-export type SelectCentrifugePositionRequest = {
-  index: number
-}
-
-export type TriggerCentrifugeRampRequest = {
-  start: boolean
-}
-
-export type MoveCarriageRequest = {
-  command: number
-  vibration_duration_ms: number
-}
-
-export type CarriageMotorCommandRequest = {
-  mode: number
-  value: number
-}
-
-export type MotorVelocityRequest = {
-  rad_s: number
-}
-
-export type MotorPositionRequest = {
-  rad: number
-}
-
-export type CarriageMotorTelemetryMsg = {
-  stamp?: RosStamp
-  position_um?: number
-  velocity_um_s?: number
 }
