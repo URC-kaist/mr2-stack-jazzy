@@ -63,6 +63,28 @@ jobs:
           /usr/bin/python3 -m unittest discover -s scripts/setup/tests -v \
             2>&1 | tee "$MR2_CI_ROOT/records/installer-tests.log"
 
+      - name: Isolate preinstalled runner Python packages
+        run: |
+          # Hosted runners include global pip packages that can shadow our
+          # Ubuntu apt providers. Preserve them outside Python's import path
+          # on this disposable VM; keep the installer's ownership checks.
+          /usr/bin/python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          backup = Path(os.environ['MR2_CI_ROOT']) / 'runner-python-backup'
+          backup.mkdir()
+          for index, entry in enumerate(dict.fromkeys(sys.path)):
+              path = Path(entry)
+              if (path.is_absolute() and path.is_relative_to('/usr/local/lib')
+                      and path.name in {'site-packages', 'dist-packages'} and path.is_dir()):
+                  print(f'Isolating preinstalled packages: {path}', flush=True)
+                  subprocess.run(['sudo', 'mv', '--', str(path), str(backup / str(index))], check=True)
+                  subprocess.run(['sudo', 'install', '-d', '-m', '0755', str(path)], check=True)
+          PY
+
       - name: Install and validate the development environment
         id: setup
         run: |
