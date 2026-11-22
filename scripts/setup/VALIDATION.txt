@@ -5,18 +5,19 @@ Scope
 -----
 Base: URC-kaist/mr2-stack-jazzy main at
 0430fd589752de0d1577abb9069f2507a3ba9c3a.
-Task branch: migration/jazzy-environment-bootstrap.
-Add only the dev/rover/base installer, its implementation, manifest, checks,
-regression tests, official ROS apt-source bootstrap and documentation.
-The existing npm locks and submodule revisions are retained. The only
-application change consolidates duplicate TypeScript aliases in
-dashboard/src/lib/rosMessages.ts. No full rover source build is included.
+Task branch: setup/jazzy-env-scripts.
+The initial integration adds the dev/rover/base installer, manifest, checks,
+regression tests, official ROS apt-source bootstrap and documentation, and
+consolidates duplicate dashboard TypeScript aliases. This follow-up exports
+the CAN library Threads dependency and replaces the autonomy package v3
+BehaviorTree requirement with the Jazzy v4 package. Existing npm locks,
+submodule revisions, runtime algorithms and ROS message schemas are retained.
 
 Submodules are cloned recursively at the revisions already pinned by main:
   rtcm_msgs: 8d27ab5f4d4a581e1bb9c87d572994c25197f6d4
   ublox_dgnss: f4fdcf77f1427ef92195e064e42232855f016256
-Only ublox_ubx_msgs and rtcm_msgs are built by this installer for Node message
-support; this is not a build of the entire rover workspace.
+The installer builds only ublox_ubx_msgs and rtcm_msgs for Node message
+support. Application package build coverage is a separate validation below.
 
 Lock reconciliation
 -------------------
@@ -62,8 +63,8 @@ merely activating the raw venv does not apply that SDK selection.
 The accepted PyTorch sm_87 warning remains documented. No warning suppression,
 wheel modification, TensorRT-default switch or motor actuation is performed.
 
-Observed integration results
-----------------------------
+Initial environment integration results
+---------------------------------------
 - Bash syntax checks and all 16 installer boundary regression tests passed on
   both validation hosts.
 - Nano arm64: new rover perception venv, Node toolchain, GNSS message build and
@@ -92,3 +93,40 @@ Observed integration results
 Raw logs, state snapshots, fixture-backed harness code/results and lock JSON
 comparison are retained with the integration task evidence. The README
 explains each check and its limits.
+
+ROS package build coverage after CAN / BT fixes
+----------------------------------------------
+Source baseline: d752833709f0d8020e9cf082a32e1f1d916c9138, plus the three
+source-file fixes in this change. The per-package evidence summary is
+ros-build-validation.json alongside this file.
+
+- mr2_can_bus_core exports Threads with ament_export_dependencies(Threads),
+  so downstream CMake projects can resolve its public Threads::Threads target.
+- mr2_rover_auto requires behaviortree_cpp (Jazzy v4), and its package.xml
+  declares that package for build/export/runtime instead of a v3 exec-only
+  dependency. The selected v4 library was already installed through Jazzy apt.
+
+Coverage uses three completed stages on Nano Ubuntu 24.04 / ROS Jazzy:
+1. The earlier clean workspace build completed 20 packages successfully.
+2. A v4 autonomy source copy completed mr2_rover_auto compilation, linkage and
+   installation. Every file in the actual autonomy source matches that tested
+   copy after applying the v4 changes.
+3. An incremental build checks the CAN provider plus the eight packages not
+   previously verified: mr2_battery_monitor, mr2_camera_turret, mr2_led,
+   mr2_science_module, mr2_xbee_bridge, mr2_rover_description, mr2_moveit and
+   mr2_launch. The earlier successful dependency builds are reused.
+
+The union of these stages covers all 29 ROS packages. This is composed build
+coverage, not a new clean full-workspace rebuild. The CAN provider is an
+INTERFACE/header-only target; only dependency discovery export changes, while
+its headers and the already successful packages' code are unchanged.
+
+Build settings: RelWithDebInfo, BUILD_TESTING=OFF, system Python 3.12, sequential
+package executor and at most two CMake compile jobs. Test execution, ROS node
+startup, launch/BT XML behavior and hardware operation remain unverified.
+Compiler deprecation warnings are retained; none are suppressed by this change.
+This coverage is for Nano arm64, not a full amd64 workspace build.
+
+Raw evidence is retained on Nano under:
+  ~/mr2-setup-validation/2026-11-22-jazzy-build-audit/
+  ~/mr2-setup-validation/2026-11-22-can-bt4-build-fixes/

@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-22",
+  "platform": {
+    "board": "Orin Nano",
+    "architecture": "arm64",
+    "os": "Ubuntu 24.04",
+    "ros": "Jazzy"
+  },
+  "base_commit": "d752833709f0d8020e9cf082a32e1f1d916c9138",
+  "validation_mode": "composed package build coverage; not a new clean full-workspace rebuild",
+  "coverage": {
+    "total": 29,
+    "passed": 29,
+    "failed": 0,
+    "unverified": 0
+  },
+  "stages": {
+    "baseline_clean_build": {
+      "passed": 20,
+      "testing_enabled": false
+    },
+    "bt4_isolated_build": {
+      "passed": 1,
+      "seconds": 422.81,
+      "actual_source_matches_tested_copy": true
+    },
+    "targeted_incremental_build": {
+      "passed": 9,
+      "includes_previously_passed_can_provider": true,
+      "previously_unverified_packages": 8,
+      "exit_code": 0,
+      "seconds": 322.89
+    }
+  },
+  "build_settings": {
+    "build_type": "RelWithDebInfo",
+    "BUILD_TESTING": false,
+    "cmake_parallel_jobs": 2
+  },
+  "source_sha256": {
+    "rover/ros2_ws/src/mr2_can_bus_core/CMakeLists.txt": "22392d2563d09847dedf57c804b1c1275bcf6a3c91636c82834a3843ee16ebfe",
+    "rover/ros2_ws/src/mr2_rover_auto/CMakeLists.txt": "55551f35bb8fb382fd79188ff1abe66b058d606eca5523821f4f3a187b074bc1",
+    "rover/ros2_ws/src/mr2_rover_auto/package.xml": "b3720ea9b5aad9d3f37f491fe66786d12c7ae02d9b19bfdff670b42248fa4cb6"
+  },
+  "packages": {
+    "mr2_action_interface": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_battery_monitor": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_camera_turret": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_can_bus_core": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_can_hardware_interface": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_devices_ak_servo": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_devices_output_actuator": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_launch": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_led": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_moveit": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_nav2_plugins": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_panorama": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_rover_auto": {
+      "status": "passed",
+      "stage": "bt4-isolated-compile-link-install"
+    },
+    "mr2_rover_control": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_rover_description": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_science_module": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_spectrophotometer": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_spectrophotometer_msgs": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_system_status": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_video_streaming": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "mr2_xbee_bridge": {
+      "status": "passed",
+      "stage": "can-fix-and-previously-unbuilt-targeted-build"
+    },
+    "mr2_yolo_perception": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "ntrip_client_node": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "rtcm_msgs": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "ublox_dgnss": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "ublox_dgnss_node": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "ublox_nav_sat_fix_hp_node": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "ublox_ubx_interfaces": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    },
+    "ublox_ubx_msgs": {
+      "status": "passed",
+      "stage": "baseline-clean-build"
+    }
+  },
+  "apt_packages_changed": false,
+  "runtime_tested": false,
+  "remaining_scope": [
+    "ROS node and launch execution",
+    "BT XML loading and execution",
+    "Actual rover hardware and motor tests",
+    "Whole ROS workspace build on amd64"
+  ],
+  "raw_evidence_directory": "/home/mr2/mr2-setup-validation/2026-11-22-can-bt4-build-fixes"
+}
