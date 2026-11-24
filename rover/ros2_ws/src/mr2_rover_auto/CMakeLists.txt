@@ -182,5 +182,13 @@ install( DIRECTORY config DESTINATION share/${PROJECT_NAME}/ )
 install( DIRECTORY behavior_trees DESTINATION share/${PROJECT_NAME}/)
 install( DIRECTORY maps DESTINATION share/${PROJECT_NAME}/ )
 
+# Command-line tools for simulation and testing:
+#   ros2 run mr2_rover_auto send_gnss_mission.py   one GNSS mission, followed to the end
+#   ros2 run mr2_rover_auto gz_pose.py             rover ground-truth pose from Gazebo
+install( PROGRAMS
+  scripts/send_gnss_mission.py
+  scripts/gz_pose.py
+  DESTINATION lib/${PROJECT_NAME} )
+
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()
