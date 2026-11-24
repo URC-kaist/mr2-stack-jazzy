@@ -18,7 +18,7 @@
         <update_rate>1</update_rate>
         <visualize>true</visualize>
         <topic>left_gnss/navsat</topic>
-        <ignition_frame_id>left_gnss</ignition_frame_id>
+        <gz_frame_id>left_gnss</gz_frame_id>
       </sensor>
     </gazebo>
 
@@ -28,7 +28,7 @@
         <update_rate>1</update_rate>
         <visualize>true</visualize>
         <topic>right_gnss/navsat</topic>
-        <ignition_frame_id>right_gnss</ignition_frame_id>
+        <gz_frame_id>right_gnss</gz_frame_id>
       </sensor>
     </gazebo>
 
@@ -38,7 +38,7 @@
         <always_on>1</always_on>
         <visualize>true</visualize>
         <topic>rgbd_camera</topic>
-        <ignition_frame_id>rgbd_camera</ignition_frame_id>
+        <gz_frame_id>rgbd_camera</gz_frame_id>
         <camera>
           <horizontal_fov>1.5184</horizontal_fov>
           <lens>
@@ -93,7 +93,7 @@
           <always_on>1</always_on>
           <visualize>true</visualize>
           <topic>front_camera</topic>
-          <ignition_frame_id>front_camera_optical_frame</ignition_frame_id>
+          <gz_frame_id>front_camera_optical_frame</gz_frame_id>
           <camera>
             <horizontal_fov>1.5184</horizontal_fov>
             <lens>
@@ -148,7 +148,7 @@
         <update_rate>60</update_rate>
         <visualize>false</visualize>
         <topic>imu</topic>
-        <ignition_frame_id>imu_link</ignition_frame_id>
+        <gz_frame_id>imu_link</gz_frame_id>
       </sensor>
     </gazebo>
   </xacro:macro>
