@@ -1,7 +1,7 @@
 import os
 import yaml
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
@@ -39,7 +39,7 @@ def generate_launch_description():
 
     servo_node = Node(
         package="moveit_servo",
-        executable="servo_node_main",
+        executable="servo_node",
         name="moveit_servo",
         output="screen",
         parameters=[
@@ -49,21 +49,22 @@ def generate_launch_description():
         ],
     )
 
-    start_servo = TimerAction(
-        period=2.0,
-        actions=[
-            ExecuteProcess(
-                cmd=[
-                    "ros2",
-                    "service",
-                    "call",
-                    "/moveit_servo/start_servo",
-                    "std_srvs/srv/Trigger",
-                    "{}",
-                ],
-                output="screen",
-            )
+    # Jazzy starts Servo automatically and requires explicit command type selection.
+    command_router = Node(
+        package="mr2_moveit",
+        executable="servo_command_router.py",
+        output="screen",
+        parameters=[{
+            "use_sim_time": use_sim_time,
+            "incoming_command_timeout": servo_dict["incoming_command_timeout"],
+        }],
+        remappings=[
+            ("twist_commands", "/moveit_servo/delta_twist_cmds"),
+            ("joint_commands", "/moveit_servo/delta_joint_cmds"),
+            ("servo_twist", "/moveit_servo/internal/delta_twist_cmds"),
+            ("servo_joint", "/moveit_servo/internal/delta_joint_cmds"),
+            ("switch_command_type", "/moveit_servo/switch_command_type"),
         ],
     )
 
-    return LaunchDescription(args + [servo_node, start_servo])
+    return LaunchDescription(args + [servo_node, command_router])

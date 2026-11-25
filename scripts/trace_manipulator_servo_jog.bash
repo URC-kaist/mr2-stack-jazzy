@@ -30,7 +30,8 @@ from geometry_msgs.msg import TwistStamped
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import JointState
-from std_msgs.msg import Float64, Int8
+from std_msgs.msg import Float64
+from moveit_msgs.msg import ServoStatus
 from trajectory_msgs.msg import JointTrajectory
 
 
@@ -135,7 +136,7 @@ class ServoJogTrace(Node):
         self.create_subscription(TwistStamped, "/moveit_servo/delta_twist_cmds", self.twist_cmd_cb, 20)
         self.create_subscription(JointTrajectory, "/manipulator_controller/joint_trajectory", self.traj_cb, 20)
         self.create_subscription(JointState, "/joint_states", self.joint_state_cb, qos_profile_sensor_data)
-        self.create_subscription(Int8, "/moveit_servo/status", self.status_cb, 20)
+        self.create_subscription(ServoStatus, "/moveit_servo/status", self.status_cb, 20)
         self.create_subscription(Float64, "/moveit_servo/collision_velocity_scale", self.collision_scale_cb, 20)
         self.timer = self.create_timer(args.period, self.print_sample)
 
@@ -173,7 +174,7 @@ class ServoJogTrace(Node):
             self.state_baseline = dict(self.latest_state)
 
     def status_cb(self, msg):
-        self.latest_status = int(msg.data)
+        self.latest_status = int(msg.code)
         self.latest_status_time = now_s()
 
     def collision_scale_cb(self, msg):

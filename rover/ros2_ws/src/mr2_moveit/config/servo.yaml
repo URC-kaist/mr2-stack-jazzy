@@ -6,10 +6,14 @@ publish_period: 0.02            # seconds between command publications (50 Hz)
 max_expected_latency: 0.1       # delay between sending a command and the robot executing it [s]
 
 command_in_type: "speed_units"  # "unitless" or "speed_units"
+# Humble ignored scale.linear/rotational in speed_units mode. In Jazzy positive
+# values also cap Cartesian speed norms. Zero preserves the existing SI inputs;
+# URDF joint velocity limits and Servo collision/singularity checks still apply.
 scale:
-  linear: 0.2       # m/s (only used if command_in_type=="unitless")
-  rotational: 0.8   # rad/s (only used if command_in_type=="unitless")
+  linear: 0.0
+  rotational: 0.0
   joint: 0.6        # rad/s (only used if command_in_type=="unitless")
+incoming_command_timeout: 0.1  # shared with the command router, in ROS seconds
 
 command_out_type: std_msgs/Float64MultiArray
 command_out_topic: /manipulator_controller/commands
@@ -24,17 +28,16 @@ is_primary_planning_scene_monitor: true
 check_octomap_collisions: false
 
 move_group_name: manipulator
-planning_frame: base_link
-ee_frame_name: eef_link
-robot_link_command_frame: base_link
+# Jazzy derives base_link/eef_link from the manipulator IK chain in rover.srdf.
 
 lower_singularity_threshold: 60.0
 hard_stop_singularity_threshold: 120.0
 leaving_singularity_threshold_multiplier: 2.5
-joint_limit_margin: 0.06
+joint_limit_margins: [0.06]     # the single margin applies to all six joints
 
-cartesian_command_in_topic: ~/delta_twist_cmds
-joint_command_in_topic: ~/delta_joint_cmds
+# The router retains the public delta_* topics and selects Jazzy's command type.
+cartesian_command_in_topic: ~/internal/delta_twist_cmds
+joint_command_in_topic: ~/internal/delta_joint_cmds
 joint_topic: /joint_states
 status_topic: ~/status
 
